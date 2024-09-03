@@ -16,8 +16,7 @@ def deepnn(l, x, final_dim=1):
 
     outputs = tf.keras.layers.Dense(final_dim)(x)
 
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    return model
+    return outputs
 
 # def deepnn(l, x, final_dim = 1):
 #   """deepnn builds the graph for a deep net for classifying digits.
