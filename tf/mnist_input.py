@@ -66,7 +66,7 @@ def get_iterator(l, n, window_size, digset, minibatch_size=None):
     if minibatch_size:
         mm_data = mm_data.batch(minibatch_size)
     mm_data = mm_data.prefetch(10)
-    return mm_data.make_one_shot_iterator()
+    return tf.compat.v1.data.make_one_shot_iterator(mm_data)
 
 
 def get_iterators(l, n, window_size, minibatch_size=None, val_repeat=None):
@@ -78,6 +78,6 @@ def get_iterators(l, n, window_size, minibatch_size=None, val_repeat=None):
 
 def test_iterators():
     a, b, c = get_iterators(5, 10, 100)
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         for d in [a, b, c]:
             print(sess.run(d.get_next()))

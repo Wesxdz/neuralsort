@@ -62,8 +62,8 @@ def prop_correct (P1, P2):
   return tf.reduce_mean(tf.cast(correct, tf.float32))
 
 def sample_gumbel(shape, eps = 1e-20): 
-	U = tf.random_uniform(shape, minval=0, maxval=1)
-	return -tf.log(-tf.log(U + eps) + eps)
+	U = tf.random.uniform(shape, minval=0, maxval=1)
+	return -tf.math.log(-tf.math.log(U + eps) + eps)
 
 # s: M x n
 # P: M x n x n
@@ -71,7 +71,7 @@ def sample_gumbel(shape, eps = 1e-20):
 def pl_log_density(log_s, P):
   log_s = tf.expand_dims(log_s, 2) # M x n x 1
   ordered_log_s = P @ log_s # M x n x 1
-  ordered_log_s = tf.squeeze(ordered_log_s, squeeze_dims=[-1]) # M x n
+  ordered_log_s = tf.squeeze(ordered_log_s, axis=[-1]) # M x n
   potentials = tf.exp(ordered_log_s)
   n = log_s.get_shape().as_list()[1]
   max_log_s = [
@@ -91,7 +91,7 @@ def pl_log_density(log_s, P):
     for k in range(n)
   ] # [M x 1] x n
   log_denominators = [
-    tf.squeeze(tf.log(denominators[k]) + max_log_s[k], squeeze_dims=[1])
+    tf.squeeze(tf.math.log(denominators[k]) + max_log_s[k], axis=[1])
     for k in range(n)
   ] # [M] x n
   log_denominator = tf.add_n(log_denominators) # M

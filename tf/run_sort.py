@@ -7,10 +7,10 @@ from sinkhorn import gumbel_sinkhorn, sinkhorn_operator
 import util
 import random
 
-tf.set_random_seed(94305)
+tf.compat.v1.set_random_seed(94305)
 random.seed(94305)
 
-flags = tf.app.flags
+flags = tf.compat.v1.app.flags
 flags.DEFINE_integer('M', 1, 'batch size')
 flags.DEFINE_integer('n', 3, 'number of elements to compare at a time')
 flags.DEFINE_integer('l', 4, 'number of digits')
@@ -36,7 +36,7 @@ train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
 
 false_tensor = tf.convert_to_tensor(False)
-evaluation = tf.placeholder_with_default(false_tensor, ())
+evaluation = tf.compat.v1.placeholder_with_default(false_tensor, ())
 temperature = tf.cond(evaluation,
                       false_fn=lambda: tf.convert_to_tensor(
                           tau, dtype=tf.float32),
@@ -47,8 +47,8 @@ temperature = tf.cond(evaluation,
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 
-handle = tf.placeholder(tf.string, ())
-X_iterator = tf.data.Iterator.from_string_handle(
+handle = tf.compat.v1.placeholder(tf.string, ())
+X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
     handle,
     (tf.float32, tf.float32, tf.float32, tf.float32),
     ((M, n, l * 28, 28), (M,), (M, n), (M, n))
@@ -61,15 +61,15 @@ P_true = util.neuralsort(true_scores, 1e-10)
 if method == 'vanilla':
     representations = multi_mnist_cnn.deepnn(l, X, n)
     concat_reps = tf.reshape(representations, [M, n * n])
-    fc1 = tf.layers.dense(concat_reps, n * n)
-    fc2 = tf.layers.dense(fc1, n * n)
-    P_hat_raw = tf.layers.dense(fc2, n * n)
+    fc1 = tf.compat.v1.layers.dense(concat_reps, n * n)
+    fc2 = tf.compat.v1.layers.dense(fc1, n * n)
+    P_hat_raw = tf.compat.v1.layers.dense(fc2, n * n)
     P_hat_raw_square = tf.reshape(P_hat_raw, [M, n, n])
 
-    P_hat = tf.nn.softmax(P_hat_raw_square, dim=-1)  # row-stochastic!
+    P_hat = tf.nn.softmax(P_hat_raw_square, axis=-1)  # row-stochastic!
 
-    losses = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels=P_true, logits=P_hat_raw_square, dim=2)
+    losses = tf.nn.softmax_cross_entropy_with_logits(
+        labels=P_true, logits=P_hat_raw_square, axis=2)
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
@@ -77,10 +77,10 @@ if method == 'sinkhorn':
     representations = multi_mnist_cnn.deepnn(l, X, n)
     pre_sinkhorn = tf.reshape(representations, [M, n, n])
     P_hat = sinkhorn_operator(pre_sinkhorn, temp=temperature)
-    P_hat_logit = tf.log(P_hat)
+    P_hat_logit = tf.math.log(P_hat)
 
-    losses = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels=P_true, logits=P_hat_logit, dim=2)
+    losses = tf.nn.softmax_cross_entropy_with_logits(
+        labels=P_true, logits=P_hat_logit, axis=2)
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
@@ -91,13 +91,13 @@ if method == 'gumbel_sinkhorn':
 
     P_hat_sample, _ = gumbel_sinkhorn(
         pre_sinkhorn, temp=temperature, n_samples=n_s)
-    P_hat_sample_logit = tf.log(P_hat_sample)
+    P_hat_sample_logit = tf.math.log(P_hat_sample)
 
     P_true_sample = tf.expand_dims(P_true, 1)
     P_true_sample = tf.tile(P_true_sample, [1, n_s, 1, 1])
 
-    losses = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels=P_true_sample, logits=P_hat_sample_logit, dim=3)
+    losses = tf.nn.softmax_cross_entropy_with_logits(
+        labels=P_true_sample, logits=P_hat_sample_logit, axis=3)
     losses = tf.reduce_mean(losses, axis=-1)
     losses = tf.reshape(losses, [-1])
     loss = tf.reduce_mean(losses)
@@ -107,8 +107,8 @@ if method == 'deterministic_neuralsort':
     scores = tf.reshape(scores, [M, n, 1])
     P_hat = util.neuralsort(scores, temperature)
 
-    losses = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels=P_true, logits=tf.log(P_hat + 1e-20), dim=2)
+    losses = tf.nn.softmax_cross_entropy_with_logits(
+        labels=P_true, logits=tf.math.log(P_hat + 1e-20), axis=2)
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
@@ -123,8 +123,8 @@ if method == 'stochastic_neuralsort':
         scores_sample, temperature)
 
     P_true_sample = tf.tile(P_true, [n_s, 1, 1])
-    losses = tf.nn.softmax_cross_entropy_with_logits_v2(
-        labels=P_true_sample, logits=tf.log(P_hat_sample + 1e-20), dim=2)
+    losses = tf.nn.softmax_cross_entropy_with_logits(
+        labels=P_true_sample, logits=tf.math.log(P_hat_sample + 1e-20), axis=2)
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 else:
@@ -132,7 +132,7 @@ else:
 
 
 def vec_gradient(l):  # l is a scalar
-    gradient = tf.gradients(l, tf.trainable_variables())
+    gradient = tf.gradients(l, tf.compat.v1.trainable_variables())
     vec_grads = [tf.reshape(grad, [-1]) for grad in gradient]  # flatten
     z = tf.concat(vec_grads, 0)  # n_params
     return z
@@ -141,13 +141,13 @@ def vec_gradient(l):  # l is a scalar
 prop_correct = util.prop_correct(P_true, P_hat)
 prop_any_correct = util.prop_any_correct(P_true, P_hat)
 
-opt = tf.train.AdamOptimizer(initial_rate)
+opt = tf.compat.v1.train.AdamOptimizer(initial_rate)
 train_step = opt.minimize(loss)
-saver = tf.train.Saver()
+saver = tf.compat.v1.train.Saver()
 
 # MAIN BEGINS
 
-sess = tf.Session()
+sess = tf.compat.v1.Session()
 logfile = open('./logs/%s.log' % experiment_id, 'w')
 
 
@@ -156,7 +156,7 @@ def prnt(*args):
     print(*args, file=logfile)
 
 
-sess.run(tf.global_variables_initializer())
+sess.run(tf.compat.v1.global_variables_initializer())
 train_sh, validate_sh, test_sh = sess.run([
     train_iterator.string_handle(),
     val_iterator.string_handle(),
