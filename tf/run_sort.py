@@ -47,7 +47,7 @@ temperature = tf.cond(evaluation,
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 
-handle = tf.compat.v1.placeholder(tf.string, ())
+handle = tf.Variable(tf.string, shape=())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
     handle,
     (tf.float32, tf.float32, tf.float32, tf.float32),
