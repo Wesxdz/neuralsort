@@ -3,7 +3,7 @@ import random
 import tensorflow as tf
 import math
 from statistics import median
-from tensorflow.examples.tutorials.mnist import input_data
+import tensorflow_datasets as tfds
 
 TRAIN_SET_SIZE = 55000
 VAL_SET_SIZE = 5000
@@ -11,18 +11,27 @@ TEST_SET_SIZE = 10000
 
 
 def select_digit(split, d):
-    return split.images[np.nonzero(split.labels[:, d])]
+    return split[np.nonzero(split['label'] == d)]
 
 
 def split_digits(split):
     return [select_digit(split, d) for d in range(10)]
 
 
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+(ds_train, ds_test), ds_info = tfds.load(
+    'mnist',
+    split=['train', 'test'],
+    shuffle_files=True,
+    as_supervised=True,
+    with_info=True,
+)
 
-train_digits = split_digits(mnist.train)
-validation_digits = split_digits(mnist.validation)
-test_digits = split_digits(mnist.test)
+ds_val = ds_train.take(VAL_SET_SIZE)
+ds_train = ds_train.skip(VAL_SET_SIZE)
+
+train_digits = split_digits(ds_train)
+validation_digits = split_digits(ds_val)
+test_digits = split_digits(ds_test)
 
 
 def get_multi_mnist_input(l, n, low, high, digset=train_digits):
@@ -37,7 +46,7 @@ def get_multi_mnist_input(l, n, low, high, digset=train_digits):
             digit = num % 10
             num //= 10
             ref = digset[digit]
-            mnist_digits.insert(0, ref[np.random.randint(0, ref.shape[0])])
+            mnist_digits.insert(0, ref[np.random.randint(0, ref.shape[0])]['image'])
         multi_mnist_sequence = np.concatenate(mnist_digits)
         multi_mnist_sequence = np.reshape(multi_mnist_sequence, (-1, 28))
         multi_mnist_sequences.append(multi_mnist_sequence)
