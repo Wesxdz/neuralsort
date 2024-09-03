@@ -11,7 +11,7 @@ TEST_SET_SIZE = 10000
 
 
 def select_digit(split, d):
-    return np.array([x for x in split.as_numpy_iterator() if x['label'] == d])
+    return np.array([x for x in split.as_numpy_iterator() if x[1] == d])
 
 def split_digits(split):
     return [select_digit(split, d) for d in range(10)]
