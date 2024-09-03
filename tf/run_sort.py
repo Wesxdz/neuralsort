@@ -8,6 +8,8 @@ import util
 import random
 
 tf.compat.v1.set_random_seed(94305)
+tf.compat.v1.disable_eager_execution()
+
 random.seed(94305)
 
 flags = tf.compat.v1.app.flags
@@ -47,7 +49,7 @@ temperature = tf.cond(evaluation,
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 
-handle = tf.Variable("", dtype=tf.string)
+handle = tf.compat.v1.placeholder(tf.string, ())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
     handle,
     (tf.float32, tf.float32, tf.float32, tf.float32),
