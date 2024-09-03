@@ -45,7 +45,7 @@ temperature = tf.cond(evaluation,
                       true_fn=lambda: tf.convert_to_tensor(
                           1e-10, dtype=tf.float32)  # simulate hard sort
                       )
-
+print(method)
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 
@@ -75,7 +75,7 @@ if method == 'vanilla':
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
-if method == 'sinkhorn':
+elif method == 'sinkhorn':
     representations = multi_mnist_cnn.deepnn(l, X, n)
     pre_sinkhorn = tf.reshape(representations, [M, n, n])
     P_hat = sinkhorn_operator(pre_sinkhorn, temp=temperature)
@@ -86,7 +86,7 @@ if method == 'sinkhorn':
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
-if method == 'gumbel_sinkhorn':
+elif method == 'gumbel_sinkhorn':
     representations = multi_mnist_cnn.deepnn(l, X, n)
     pre_sinkhorn = tf.reshape(representations, [M, n, n])
     P_hat = sinkhorn_operator(pre_sinkhorn, temp=temperature)
@@ -104,7 +104,7 @@ if method == 'gumbel_sinkhorn':
     losses = tf.reshape(losses, [-1])
     loss = tf.reduce_mean(losses)
 
-if method == 'deterministic_neuralsort':
+elif method == 'deterministic_neuralsort':
     scores = multi_mnist_cnn.deepnn(l, X, 1)
     scores = tf.reshape(scores, [M, n, 1])
     P_hat = util.neuralsort(scores, temperature)
@@ -114,7 +114,7 @@ if method == 'deterministic_neuralsort':
     losses = tf.reduce_mean(losses, axis=-1)
     loss = tf.reduce_mean(losses)
 
-if method == 'stochastic_neuralsort':
+elif method == 'stochastic_neuralsort':
     scores = multi_mnist_cnn.deepnn(l, X, 1)
     scores = tf.reshape(scores, [M, n, 1])
     P_hat = util.neuralsort(scores, temperature)
