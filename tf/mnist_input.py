@@ -37,8 +37,9 @@ def get_multi_mnist_input(l, n, low, high, digset=train_digits):
     multi_mnist_sequences = []
     values = []
     for i in range(n):
-        num = random.randint(10**(l-1), 10**l - 1)
         mnist_digits = []
+        num = random.randint(low, high)
+        values.append(num)
         for i in range(l):
             digit = num % 10
             num //= 10
