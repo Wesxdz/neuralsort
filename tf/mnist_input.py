@@ -46,7 +46,7 @@ def get_multi_mnist_input(l, n, low, high, digset=train_digits):
             images = train_digits[digit]
             image = images[np.random.randint(0, images.shape[0])]
             mnist_digits.insert(0, image[0])
-        multi_mnist_sequence = np.concatenate(mnist_digits, axis=1)
+        multi_mnist_sequence = np.concatenate(mnist_digits, axis=0)
         multi_mnist_sequences.append(multi_mnist_sequence)
     multi_mnist_batch = np.stack(multi_mnist_sequences)
     vals = np.array(values)
