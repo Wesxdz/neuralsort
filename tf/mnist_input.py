@@ -37,17 +37,15 @@ def get_multi_mnist_input(l, n, low, high, digset=train_digits):
     multi_mnist_sequences = []
     values = []
     for i in range(n):
+        num = random.randint(10**(length-1), 10**length - 1)
         mnist_digits = []
-        num = random.randint(low, high)
-        values.append(num)
-
-        for i in range(l):
+        for i in range(length):
             digit = num % 10
             num //= 10
-            ref = digset[digit]
-            mnist_digits.insert(0, ref[np.random.randint(0, ref.shape[0])]['image'])
-        multi_mnist_sequence = np.concatenate(mnist_digits)
-        multi_mnist_sequence = np.reshape(multi_mnist_sequence, (-1, 28))
+            images = train_digits[digit]
+            image = images[np.random.randint(0, images.shape[0])]
+            mnist_digits.insert(0, image[0])
+        multi_mnist_sequence = np.concatenate(mnist_digits, axis=1)
         multi_mnist_sequences.append(multi_mnist_sequence)
     multi_mnist_batch = np.stack(multi_mnist_sequences)
     vals = np.array(values)
