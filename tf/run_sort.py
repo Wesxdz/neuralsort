@@ -4,6 +4,7 @@ import mnist_input
 import multi_mnist_cnn
 from sinkhorn import gumbel_sinkhorn, sinkhorn_operator
 from PIL import Image
+from statistics import median
 
 import util
 import random
@@ -39,18 +40,36 @@ def custom_loader(image_path):
     image = Image.open(image_path)
     image = image.convert('L').resize((28, 28))
     image_array = np.array(image)
-    image_tensor = tf.expand_dims(image_array, axis=-1)
-    features = {
-        'image': image_tensor,
-        'label': tf.constant(0, dtype=tf.int64)
-    }
+    # features = {
+    #     'image': image_tensor,
+    #     'label': tf.constant(0, dtype=tf.int64)  # Replace with actual label
+    # }
+    print(image_array)
+    return image_array
 
-    return features
+def input_generator():
+    sort_inputs = [custom_loader(f'/arc/{img}.png') for img in ["test_0_9", "test_2_1"]]
+    sort_tensor_input = np.stack(sort_inputs)
+    values = np.array(9, 1)
+    med = int(median(values))
+    arg_med = np.equal(values, med).astype('float32')
+    ret = (sort_tensor_input, med, arg_med, values)
+    yield ret
 
-dataset = tf.data.Dataset.from_tensor_slices(["/arc/test_0_9.png", "/arc/test_2_1.png"])
-dataset = dataset.map(lambda x: custom_loader(x))
-dataset = dataset.batch(1)
-sort_iterator = dataset.make_one_shot_iterator()
+# For learned mergesort, we assume these values 
+# l = 1
+# n = 2
+def get_sort_iterator():
+    l = 1
+    n = 2
+    mm_data = tf.data.Dataset.from_generator(
+        input_generator,
+        (tf.float32, tf.float32, tf.float32, tf.float32),
+        ((n, l * 28, 28), (), (n,), (n,))
+    )
+    print(mm_data)
+    mm_data.batch(1)
+    return tf.compat.v1.data.make_one_shot_iterator(mm_data)
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
@@ -156,7 +175,6 @@ def vec_gradient(l):  # l is a scalar
     vec_grads = [tf.reshape(grad, [-1]) for grad in gradient]  # flatten
     z = tf.concat(vec_grads, 0)  # n_params
     return z
-
 
 prop_correct = util.prop_correct(P_true, P_hat)
 prop_any_correct = util.prop_any_correct(P_true, P_hat)
@@ -265,10 +283,18 @@ else:
 # Load the model (either from volume or trained)
 if should_load_model_from_volume:
     load_model_from_volume()
+    sort_iterator = get_sort_iterator()
+    sort_sh = sess.run([
+        sort_iterator.string_handle(),
+    ])
+    p_h = sess.run([P_hat], feed_dict={
+                        handle: sort_sh,
+                        evaluation: True})
+    print(p_h)
+    # TODO: Test Python custom sort comparator
 else:
     load_model_from_checkpoint()
-    # TODO: Test Python custom sort comparator
-test(NUM_EPOCHS, val=False)
+    test(NUM_EPOCHS, val=False)
 
 sess.close()
 logfile.close()
