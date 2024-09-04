@@ -3,6 +3,7 @@ import numpy as np
 import mnist_input
 import multi_mnist_cnn
 from sinkhorn import gumbel_sinkhorn, sinkhorn_operator
+from PIL import Image
 
 import util
 import random
@@ -33,6 +34,23 @@ l = FLAGS.l
 tau = FLAGS.tau
 method = FLAGS.method
 initial_rate = FLAGS.lr 
+
+def custom_loader(image_path):
+    image = Image.open(image_path)
+    image = image.convert('L').resize((28, 28))
+    image_array = np.array(image)
+    image_tensor = tf.expand_dims(image_array, axis=-1)
+    features = {
+        'image': image_tensor,
+        'label': tf.constant(0, dtype=tf.int64)
+    }
+
+    return features
+
+dataset = tf.data.Dataset.from_tensor_slices(["/arc/test_0_9.png", "/arc/test_2_1.png"])
+dataset = dataset.map(lambda x: custom_loader(x))
+dataset = dataset.batch(1)
+sort_iterator = dataset.make_one_shot_iterator()
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
@@ -151,7 +169,6 @@ saver = tf.compat.v1.train.Saver()
 
 sess = tf.compat.v1.Session()
 logfile = open('./logs/%s.log' % experiment_id, 'w')
-
 
 def prnt(*args):
     print(*args)
