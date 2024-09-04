@@ -32,7 +32,7 @@ n = FLAGS.n
 l = FLAGS.l
 tau = FLAGS.tau
 method = FLAGS.method
-initial_rate = FLAGS.lr
+initial_rate = FLAGS.lr 
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
@@ -192,7 +192,6 @@ def load_model_from_volume():
     prnt("Loaded model from volume: %s." % filename)
     saver.restore(sess, filename)
 
-
 def train(epoch):
     loss_train = []
     for _ in range(TRAIN_PER_EPOCH):
@@ -200,7 +199,6 @@ def train(epoch):
                         feed_dict={handle: train_sh})
         loss_train.append(l)
     prnt('Average loss:', sum(loss_train) / len(loss_train))
-
 
 def test(epoch, val=False):
     global best_correct_val
@@ -230,9 +228,9 @@ def test(epoch, val=False):
 volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
 if volume_model_path is not None:
     prnt("Model with same parameters found in volume. Loading instead of training.")
-    load_model_from_volume = True
+    should_load_model_from_volume = True
 else:
-    load_model_from_volume = False
+    should_load_model_from_volume = False
 
 if load_model_from_volume:
     load_model_from_volume_path = volume_model_path
@@ -248,10 +246,11 @@ else:
     save_model_to_volume(NUM_EPOCHS)
 
 # Load the model (either from volume or trained)
-if load_model_from_volume:
+if should_load_model_from_volume:
     load_model_from_volume()
 else:
     load_model_from_checkpoint()
+    # TODO: Test Python custom sort comparator
 test(NUM_EPOCHS, val=False)
 
 sess.close()
