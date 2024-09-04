@@ -47,7 +47,7 @@ temperature = tf.cond(evaluation,
                       )
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
-volume_experiment_path = '/arc/%s' % experiment_id
+volume_experiment_path = '/arc/%s/' % experiment_id
 
 handle = tf.compat.v1.placeholder(tf.string, ())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
@@ -176,7 +176,7 @@ def save_model(epoch):
     saver.save(sess, checkpoint_path + 'checkpoint', global_step=epoch)
 
 def save_model_to_volume(epoch):
-    saver.save(sess, volume_experiment_path, global_step=epoch)
+    saver.save(sess, volume_experiment_path + 'sort', global_step=epoch)
 
 def load_model_from_checkpoint():
     filename = tf.train.latest_checkpoint(checkpoint_path)
