@@ -45,7 +45,6 @@ temperature = tf.cond(evaluation,
                       true_fn=lambda: tf.convert_to_tensor(
                           1e-10, dtype=tf.float32)  # simulate hard sort
                       )
-print(method)
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 volume_experiment_path = '/arc/%s' % experiment_id
@@ -179,11 +178,18 @@ def save_model(epoch):
 def save_model_to_volume(epoch):
     saver.save(sess, volume_experiment_path, global_step=epoch)
 
-def load_model():
+def load_model_from_checkpoint():
     filename = tf.train.latest_checkpoint(checkpoint_path)
     if filename == None:
         raise Exception("No model found.")
     prnt("Loaded model %s." % filename)
+    saver.restore(sess, filename)
+
+def load_model_from_volume():
+    filename = tf.train.latest_checkpoint(volume_experiment_path)
+    if filename == None:
+        raise Exception("No model found in volume.")
+    prnt("Loaded model from volume: %s." % filename)
     saver.restore(sess, filename)
 
 
@@ -221,15 +227,32 @@ def test(epoch, val=False):
         prnt("Test set: prop. all correct %f, prop. any correct %f" % (p_c, p_ac))
 
 
-for epoch in range(1, NUM_EPOCHS + 1):
-    prnt('Epoch', epoch, '(%s)' % experiment_id)
-    train(epoch)
-    test(epoch, val=True)
-    logfile.flush()
-load_model()
-test(epoch, val=False)
-# TODO: Test with variable sized input sort 
-save_model_to_volume(epoch)
+volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
+if volume_model_path is not None:
+    prnt("Model with same parameters found in volume. Loading instead of training.")
+    load_model_from_volume = True
+else:
+    load_model_from_volume = False
+
+if load_model_from_volume:
+    load_model_from_volume_path = volume_model_path
+else:
+    # Train the model
+    for epoch in range(1, NUM_EPOCHS + 1):
+        prnt('Epoch', epoch, '(%s)' % experiment_id)
+        train(epoch)
+        test(epoch, val=True)
+        logfile.flush()
+
+    # Save the trained model to the volume
+    save_model_to_volume(NUM_EPOCHS)
+
+# Load the model (either from volume or trained)
+if load_model_from_volume:
+    load_model_from_volume()
+else:
+    load_model_from_checkpoint()
+test(NUM_EPOCHS, val=False)
 
 sess.close()
 logfile.close()
