@@ -74,11 +74,18 @@ def get_sort_iterator():
     n = 2
     mm_data = tf.data.Dataset.from_generator(
         input_generator,
-        (tf.float32, tf.float32, tf.float32, tf.float32),
-        ((n, l * 28, 28), (), (n,), (n,))
+        output_signature = (
+            tf.TensorSpec(shape=((n, l * 28, 28)), dtype=tf.float32),
+            tf.TensorSpec(shape=(), dtype=tf.float32),
+            tf.TensorSpec(shape=(n,), dtype=tf.float32),
+            tf.TensorSpec(shape=(n,), dtype=tf.float32),
+        )
+        # (tf.float32, tf.float32, tf.float32, tf.float32),
+        # ((n, l * 28, 28), (), (n,), (n,))
     )
     print(mm_data)
-    # mm_data.batch(1)
+    mm_data.batch(1)
+    mm_data = mm_data.prefetch(1)
     return tf.compat.v1.data.make_one_shot_iterator(mm_data)
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
@@ -94,12 +101,14 @@ temperature = tf.cond(evaluation,
                       )
 
 volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
+print(M)
 if volume_model_path is not None:
     prnt("Model with same parameters found in volume. Loading instead of training.")
     should_load_model_from_volume = True
     M = 1 # assume run sort
 else:
     should_load_model_from_volume = False
+print(M)
 
 handle = tf.compat.v1.placeholder(tf.string, ())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
@@ -285,10 +294,10 @@ else:
 if should_load_model_from_volume:
     load_model_from_volume()
     sort_iterator = get_sort_iterator()
-    sort_sh = sess.run([
-        sort_iterator.string_handle(),
-    ])
-    p_h = sess.run([P_hat], feed_dict={
+    sort_sh = sess.run(sort_iterator.string_handle())
+    print(len(sort_sh))
+    print(type(sort_sh))
+    p_h = sess.run(P_hat, feed_dict={
                         handle: sort_sh,
                         evaluation: True})
     print(p_h)
