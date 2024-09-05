@@ -54,7 +54,6 @@ def custom_loader(image_path):
     #     'image': image_tensor,
     #     'label': tf.constant(0, dtype=tf.int64)  # Replace with actual label
     # }
-    print(image_array)
     return image_array
 
 def input_generator():
@@ -68,10 +67,6 @@ def input_generator():
     arg_med = np.equal(values, med).astype('float32')
     arg_med = np.reshape(arg_med, (1, 2))
     ret = (sort_tensor_input, med, arg_med, values)
-    print(ret[0].shape)
-    print(ret[1].shape)
-    print(ret[2].shape)
-    print(ret[3].shape)
     yield ret
 
 # For learned mergesort, we assume these values 
@@ -91,7 +86,6 @@ def get_sort_iterator():
         # (tf.float32, tf.float32, tf.float32, tf.float32),
         # ((n, l * 28, 28), (), (n,), (n,))
     )
-    print(mm_data)
     mm_data.batch(1)
     mm_data = mm_data.prefetch(1)
     return tf.compat.v1.data.make_one_shot_iterator(mm_data)
@@ -109,14 +103,12 @@ temperature = tf.cond(evaluation,
                       )
 
 volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
-print(M)
 if volume_model_path is not None:
     prnt("Model with same parameters found in volume. Loading instead of training.")
     should_load_model_from_volume = True
     M = 1 # assume run sort
 else:
     should_load_model_from_volume = False
-print(M)
 
 handle = tf.compat.v1.placeholder(tf.string, ())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
@@ -303,12 +295,15 @@ if should_load_model_from_volume:
     load_model_from_volume()
     sort_iterator = get_sort_iterator()
     sort_sh = sess.run(sort_iterator.string_handle())
-    print(len(sort_sh))
-    print(type(sort_sh))
-    p_h = sess.run(P_hat, feed_dict={
-                        handle: sort_sh,
-                        evaluation: True})
-    print(p_h)
+    for i in range(10):
+        p_h = sess.run(P_hat, feed_dict={
+                            handle: sort_sh,
+                            evaluation: True})
+        # TODO: Evaluate performance on large sort, basically see time to call the sort 30 times (use sparse batch eval?)
+        sort_permutation = p_h[0]
+        print(sort_permutation)
+        comparator = sort_permutation[0].argmax()
+        print(comparator)
     # TODO: Test Python custom sort comparator
 else:
     load_model_from_checkpoint()
