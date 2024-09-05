@@ -60,8 +60,7 @@ def custom_loader(image_path):
 def input_generator():
     sort_inputs = [custom_loader(f'/arc/{img}.png') for img in ["test_0_9", "test_2_1"]]
     sort_tensor_input = np.stack(sort_inputs)
-    sort_tensor_input = np.expand_dims(sort_tensor_input, axis=0)
-    np.expand_dims(sort_tensor_input, axis=0)
+    sort_tensor_input = np.reshape(sort_tensor_input, (1, 1, 28, 28))
     values = np.array([9, 1])
     med = int(median(values))
     arg_med = np.equal(values, med).astype('float32')
