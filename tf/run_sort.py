@@ -62,8 +62,10 @@ def input_generator():
     sort_tensor_input = np.stack(sort_inputs)
     sort_tensor_input = np.reshape(sort_tensor_input, (1, 2, 28, 28))
     values = np.array([9, 1])
-    med = int(median(values))
+    values = np.reshape(values, (1, 2))
+    med = [int(median(values))]
     arg_med = np.equal(values, med).astype('float32')
+    arg_med = np.reshape(arg_med, (1, 2))
     ret = (sort_tensor_input, med, arg_med, values)
     print(ret[0].shape)
     print(ret[1].shape)
@@ -81,9 +83,9 @@ def get_sort_iterator():
         input_generator,
         output_signature = (
             tf.TensorSpec(shape=((1, n, l * 28, 28)), dtype=tf.float32),
-            tf.TensorSpec(shape=(), dtype=tf.float32),
-            tf.TensorSpec(shape=(n), dtype=tf.float32),
-            tf.TensorSpec(shape=(n), dtype=tf.float32),
+            tf.TensorSpec(shape=(1), dtype=tf.float32),
+            tf.TensorSpec(shape=(1, n), dtype=tf.float32),
+            tf.TensorSpec(shape=(1, n), dtype=tf.float32),
         )
         # (tf.float32, tf.float32, tf.float32, tf.float32),
         # ((n, l * 28, 28), (), (n,), (n,))
