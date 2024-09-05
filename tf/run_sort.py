@@ -60,6 +60,7 @@ def custom_loader(image_path):
 def input_generator():
     sort_inputs = [custom_loader(f'/arc/{img}.png') for img in ["test_0_9", "test_2_1"]]
     sort_tensor_input = np.stack(sort_inputs)
+    np.expand_dims(sort_tensor_input, axis=0)
     values = np.array(9, 1)
     med = int(median(values))
     arg_med = np.equal(values, med).astype('float32')
@@ -75,7 +76,7 @@ def get_sort_iterator():
     mm_data = tf.data.Dataset.from_generator(
         input_generator,
         output_signature = (
-            tf.TensorSpec(shape=((n, l * 28, 28)), dtype=tf.float32),
+            tf.TensorSpec(shape=((1, n, l * 28, 28)), dtype=tf.float32),
             tf.TensorSpec(shape=(), dtype=tf.float32),
             tf.TensorSpec(shape=(n,), dtype=tf.float32),
             tf.TensorSpec(shape=(n,), dtype=tf.float32),
