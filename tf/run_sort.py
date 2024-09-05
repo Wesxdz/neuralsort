@@ -36,6 +36,12 @@ tau = FLAGS.tau
 method = FLAGS.method
 initial_rate = FLAGS.lr
 
+experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
+checkpoint_path = 'checkpoints/%s/' % experiment_id
+volume_experiment_path = '/arc/%s/' % experiment_id
+
+logfile = open('./logs/%s.log' % experiment_id, 'w')
+
 def prnt(*args):
     print(*args)
     print(*args, file=logfile)
@@ -86,9 +92,6 @@ temperature = tf.cond(evaluation,
                       true_fn=lambda: tf.convert_to_tensor(
                           1e-10, dtype=tf.float32)  # simulate hard sort
                       )
-experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
-checkpoint_path = 'checkpoints/%s/' % experiment_id
-volume_experiment_path = '/arc/%s/' % experiment_id
 
 volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
 if volume_model_path is not None:
@@ -198,7 +201,6 @@ saver = tf.compat.v1.train.Saver()
 # MAIN BEGINS
 
 sess = tf.compat.v1.Session()
-logfile = open('./logs/%s.log' % experiment_id, 'w')
 
 sess.run(tf.compat.v1.global_variables_initializer())
 train_sh, validate_sh, test_sh = sess.run([
