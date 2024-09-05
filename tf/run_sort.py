@@ -34,7 +34,11 @@ n = FLAGS.n
 l = FLAGS.l
 tau = FLAGS.tau
 method = FLAGS.method
-initial_rate = FLAGS.lr 
+initial_rate = FLAGS.lr
+
+def prnt(*args):
+    print(*args)
+    print(*args, file=logfile)
 
 def custom_loader(image_path):
     image = Image.open(image_path)
@@ -68,7 +72,7 @@ def get_sort_iterator():
         ((n, l * 28, 28), (), (n,), (n,))
     )
     print(mm_data)
-    mm_data.batch(1)
+    # mm_data.batch(1)
     return tf.compat.v1.data.make_one_shot_iterator(mm_data)
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
@@ -85,6 +89,14 @@ temperature = tf.cond(evaluation,
 experiment_id = 'sort-%s-M%d-n%d-l%d-t%d' % (method, M, n, l, tau * 10)
 checkpoint_path = 'checkpoints/%s/' % experiment_id
 volume_experiment_path = '/arc/%s/' % experiment_id
+
+volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
+if volume_model_path is not None:
+    prnt("Model with same parameters found in volume. Loading instead of training.")
+    should_load_model_from_volume = True
+    M = 1 # assume run sort
+else:
+    should_load_model_from_volume = False
 
 handle = tf.compat.v1.placeholder(tf.string, ())
 X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
@@ -188,11 +200,6 @@ saver = tf.compat.v1.train.Saver()
 sess = tf.compat.v1.Session()
 logfile = open('./logs/%s.log' % experiment_id, 'w')
 
-def prnt(*args):
-    print(*args)
-    print(*args, file=logfile)
-
-
 sess.run(tf.compat.v1.global_variables_initializer())
 train_sh, validate_sh, test_sh = sess.run([
     train_iterator.string_handle(),
@@ -258,14 +265,6 @@ def test(epoch, val=False):
             save_model(epoch)
     else:
         prnt("Test set: prop. all correct %f, prop. any correct %f" % (p_c, p_ac))
-
-
-volume_model_path = tf.train.latest_checkpoint(volume_experiment_path)
-if volume_model_path is not None:
-    prnt("Model with same parameters found in volume. Loading instead of training.")
-    should_load_model_from_volume = True
-else:
-    should_load_model_from_volume = False
 
 if load_model_from_volume:
     load_model_from_volume_path = volume_model_path
