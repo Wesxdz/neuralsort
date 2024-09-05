@@ -65,6 +65,10 @@ def input_generator():
     med = int(median(values))
     arg_med = np.equal(values, med).astype('float32')
     ret = (sort_tensor_input, med, arg_med, values)
+    print(ret[0].shape)
+    print(ret[1].shape)
+    print(ret[2].shape)
+    print(ret[3].shape)
     yield ret
 
 # For learned mergesort, we assume these values 
@@ -77,9 +81,9 @@ def get_sort_iterator():
         input_generator,
         output_signature = (
             tf.TensorSpec(shape=((1, n, l * 28, 28)), dtype=tf.float32),
-            tf.TensorSpec(shape=(1), dtype=tf.float32),
-            tf.TensorSpec(shape=(1, n), dtype=tf.float32),
-            tf.TensorSpec(shape=(1, n), dtype=tf.float32),
+            tf.TensorSpec(shape=(), dtype=tf.float32),
+            tf.TensorSpec(shape=(n), dtype=tf.float32),
+            tf.TensorSpec(shape=(n), dtype=tf.float32),
         )
         # (tf.float32, tf.float32, tf.float32, tf.float32),
         # ((n, l * 28, 28), (), (n,), (n,))
