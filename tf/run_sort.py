@@ -5,6 +5,7 @@ import multi_mnist_cnn
 from sinkhorn import gumbel_sinkhorn, sinkhorn_operator
 from PIL import Image
 from statistics import median
+import time
 
 import util
 import random
@@ -294,16 +295,18 @@ else:
 if should_load_model_from_volume:
     load_model_from_volume()
     for i in range(10):
+        start_time = time.time()
         sort_iterator = get_sort_iterator()
         sort_sh = sess.run(sort_iterator.string_handle())
         p_h = sess.run(P_hat, feed_dict={
-                            handle: sort_sh,
-                            evaluation: True})
-        # TODO: Evaluate performance on large sort, basically see time to call the sort 30 times (use sparse batch eval?)
+            handle: sort_sh,
+            evaluation: True})
         sort_permutation = p_h[0]
         print(sort_permutation)
         comparator = sort_permutation[0].argmax()
         print(comparator)
+        end_time = time.time()
+        print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
     # TODO: Test Python custom sort comparator
 else:
     load_model_from_checkpoint()
