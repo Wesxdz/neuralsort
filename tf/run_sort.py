@@ -293,9 +293,9 @@ else:
 # Load the model (either from volume or trained)
 if should_load_model_from_volume:
     load_model_from_volume()
-    sort_iterator = get_sort_iterator()
-    sort_sh = sess.run(sort_iterator.string_handle())
     for i in range(10):
+        sort_iterator = get_sort_iterator()
+        sort_sh = sess.run(sort_iterator.string_handle())
         p_h = sess.run(P_hat, feed_dict={
                             handle: sort_sh,
                             evaluation: True})
