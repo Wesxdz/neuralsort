@@ -9,6 +9,7 @@ import time
 
 import util
 import random
+import os
 
 tf.compat.v1.set_random_seed(94305)
 tf.compat.v1.disable_eager_execution()
@@ -47,7 +48,8 @@ def prnt(*args):
     print(*args)
     print(*args, file=logfile)
 
-def custom_loader(image_path):
+
+def digit_image_loader(image_path):
     image = Image.open(image_path)
     image = image.convert('L').resize((28, 28))
     image_array = np.array(image)
@@ -57,18 +59,22 @@ def custom_loader(image_path):
     # }
     return image_array
 
+# TODO: Batch sort ops
 def input_generator():
-    sort_inputs = [custom_loader(f'/arc/{img}.png') for img in ["test_0_9", "test_2_1"]]
-    sort_tensor_input = np.stack(sort_inputs)
-    sort_tensor_input = np.reshape(sort_tensor_input, (1, 2, 28, 28))
-    values = np.array([9, 1])
-    med_val = int(median(values))
-    values = np.reshape(values, (1, 2))
-    med = np.array([med_val])
-    arg_med = np.equal(values, med).astype('float32')
-    arg_med = np.reshape(arg_med, (1, 2))
-    ret = (sort_tensor_input, med, arg_med, values)
-    yield ret
+    open_set = [np.load(node) for node in os.dirlist("/arc/mnist_sort")]
+    for a in range(len(open_set)):
+        for b in range(a+1, len(open_set)):
+            sort_inputs = [open_set[a], open_set[b]]
+            sort_tensor_input = np.stack(sort_inputs)
+            sort_tensor_input = np.reshape(sort_tensor_input, (1, 2, 28, 28))
+            values = np.array([9, 1])
+            med_val = int(median(values))
+            values = np.reshape(values, (1, 2))
+            med = np.array([med_val])
+            arg_med = np.equal(values, med).astype('float32')
+            arg_med = np.reshape(arg_med, (1, 2))
+            ret = (sort_tensor_input, med, arg_med, values)
+            yield ret
 
 # For learned mergesort, we assume these values 
 # l = 1
@@ -84,12 +90,10 @@ def get_sort_iterator():
             tf.TensorSpec(shape=(1, n), dtype=tf.float32),
             tf.TensorSpec(shape=(1, n), dtype=tf.float32),
         )
-        # (tf.float32, tf.float32, tf.float32, tf.float32),
-        # ((n, l * 28, 28), (), (n,), (n,))
     )
     mm_data.batch(1)
     mm_data = mm_data.prefetch(1)
-    return tf.compat.v1.data.make_one_shot_iterator(mm_data)
+    return mm_data
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
@@ -294,19 +298,22 @@ else:
 # Load the model (either from volume or trained)
 if should_load_model_from_volume:
     load_model_from_volume()
-    for i in range(10):
-        start_time = time.time()
-        sort_iterator = get_sort_iterator()
-        sort_sh = sess.run(sort_iterator.string_handle())
-        p_h = sess.run(P_hat, feed_dict={
-            handle: sort_sh,
-            evaluation: True})
-        sort_permutation = p_h[0]
-        print(sort_permutation)
-        comparator = sort_permutation[0].argmax()
-        print(comparator)
-        end_time = time.time()
-        print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
+    start_time = time.time()
+    sort_iterator = get_sort_iterator()
+    sort_sh = sess.run(sort_iterator.string_handle())
+    p_h = sess.run(P_hat, feed_dict={
+        handle: sort_sh,
+        evaluation: True})
+    sort_permutation = p_h[0]
+    print(sort_permutation)
+    comparator = sort_permutation[0].argmax()
+    print(comparator)
+    end_time = time.time()
+    # TODO: Iterator results, print values/file path
+    # with open(f"/arc/sorted.txt", 'w') as f:
+    #     for digit in digits:
+    #         f.write(f"{digit[2]}\n")
+    print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
     # TODO: Test Python custom sort comparator
 else:
     load_model_from_checkpoint()
