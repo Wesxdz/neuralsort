@@ -62,8 +62,9 @@ def input_generator():
     sort_tensor_input = np.stack(sort_inputs)
     sort_tensor_input = np.reshape(sort_tensor_input, (1, 2, 28, 28))
     values = np.array([9, 1])
+    med_val = int(median(values))
     values = np.reshape(values, (1, 2))
-    med = [int(median(values))]
+    med = np.array([med_val])
     arg_med = np.equal(values, med).astype('float32')
     arg_med = np.reshape(arg_med, (1, 2))
     ret = (sort_tensor_input, med, arg_med, values)
