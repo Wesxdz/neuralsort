@@ -314,6 +314,15 @@ if should_load_model_from_volume:
     load_model_from_volume()
     sort_iterator = get_sort_iterator()
     sort_sh = sess.run(sort_iterator.string_handle())
+
+
+    open_set_dir_path = "/arc/mnist_sort"
+    open_set_files = os.listdir(open_set_dir_path)
+    sort_pairs = []
+    for a in range(len(open_set_files)):
+        for b in range(a+1, len(open_set_files)):
+            sort_pairs.append([a, b])
+    z_f = 0
     while True:
         try:
             start_time = time.time()
@@ -326,9 +335,12 @@ if should_load_model_from_volume:
             comparator = sort_permutation[0].argmax()
             print(comparator)
             print(sort_files)
-            print(f'{sort_files[0][comparator].numpy().decode("utf-8")} > {sort_files[0][(comparator+1)%2].numpy().decode("utf-8")}')
+            # TODO: Figure out how to extract string from strided slice or upgrade to tf2 wtf...?
+            # print(f'{sort_files[0][comparator]} > {sort_files[0][(comparator+1)%2]}')
+            print(f'{open_set_files[sort_pairs[z_f][comparator]]} > {open_set_files[sort_pairs[z_f][(comparator+1)%2]]}')
             end_time = time.time()
             print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
+            z_f = z_f + 1
         except tf.errors.OutOfRangeError:
             break
     # TODO: Iterator results, print values/file path
