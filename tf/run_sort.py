@@ -61,7 +61,8 @@ def digit_image_loader(image_path):
 
 # TODO: Batch sort ops
 def input_generator():
-    open_set = [np.load(node) for node in os.listdir("/arc/mnist_sort")]
+    open_set_dir_path = "/arc/mnist_sort"
+    open_set = [np.load(os.path.join(open_set_dir_path, node)) for node in os.listdir(open_set_dir_path)]
     for a in range(len(open_set)):
         for b in range(a+1, len(open_set)):
             sort_inputs = [open_set[a], open_set[b]]
