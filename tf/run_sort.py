@@ -62,7 +62,8 @@ def digit_image_loader(image_path):
 # TODO: Batch sort ops
 def input_generator():
     open_set_dir_path = "/arc/mnist_sort"
-    open_set = [np.load(os.path.join(open_set_dir_path, node)) for node in os.listdir(open_set_dir_path)]
+    open_set_files = os.listdir(open_set_dir_path)
+    open_set = [np.load(os.path.join(open_set_dir_path, node)) for node in open_set_files]
     for a in range(len(open_set)):
         for b in range(a+1, len(open_set)):
             sort_inputs = [open_set[a], open_set[b]]
@@ -74,7 +75,9 @@ def input_generator():
             med = np.array([med_val])
             arg_med = np.equal(values, med).astype('float32')
             arg_med = np.reshape(arg_med, (1, 2))
-            ret = (sort_tensor_input, med, arg_med, values)
+            sort_files = [open_set_files[a], open_set_files[b]]
+            sort_files = np.reshape(sort_files, (1, 2))
+            ret = (sort_tensor_input, med, arg_med, values, sort_files)
             yield ret
 
 # For learned mergesort, we assume these values 
@@ -90,6 +93,7 @@ def get_sort_iterator():
             tf.TensorSpec(shape=(1), dtype=tf.float32),
             tf.TensorSpec(shape=(1, n), dtype=tf.float32),
             tf.TensorSpec(shape=(1, n), dtype=tf.float32),
+            tf.TensorSpec(shape=(1, n), dtype=tf.string),
         )
     )
     mm_data.batch(1)
@@ -117,13 +121,22 @@ else:
     should_load_model_from_volume = False
 
 handle = tf.compat.v1.placeholder(tf.string, ())
-X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
-    handle,
-    (tf.float32, tf.float32, tf.float32, tf.float32),
-    ((M, n, l * 28, 28), (M,), (M, n), (M, n))
-)
 
-X, y, median_scores, true_scores = X_iterator.get_next()
+if should_load_model_from_volume:
+    X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
+        handle,
+        (tf.float32, tf.float32, tf.float32, tf.float32, tf.string),
+        ((M, n, l * 28, 28), (M,), (M, n), (M, n), (M, n))
+    )
+    X, y, median_scores, true_scores, sort_files= X_iterator.get_next()
+else:
+    X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
+        handle,
+        (tf.float32, tf.float32, tf.float32, tf.float32, tf.string),
+        ((M, n, l * 28, 28), (M,), (M, n), (M, n))
+    )
+    X, y, median_scores, true_scores = X_iterator.get_next()
+
 true_scores = tf.expand_dims(true_scores, 2)
 P_true = util.neuralsort(true_scores, 1e-10)
 
@@ -299,18 +312,21 @@ else:
 # Load the model (either from volume or trained)
 if should_load_model_from_volume:
     load_model_from_volume()
-    start_time = time.time()
     sort_iterator = get_sort_iterator()
     sort_sh = sess.run(sort_iterator.string_handle())
     while True:
         try:
+            start_time = time.time()
             p_h = sess.run(P_hat, feed_dict={
                 handle: sort_sh,
                 evaluation: True})
             sort_permutation = p_h[0]
             print(sort_permutation)
+            # comparator '0' means  a < b (I think)
             comparator = sort_permutation[0].argmax()
             print(comparator)
+            print(sort_files)
+            print(f'{sort_files[comparator]} > {sort_files[(comparator+1)%2]}')
             end_time = time.time()
             print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
         except tf.errors.OutOfRangeError:
