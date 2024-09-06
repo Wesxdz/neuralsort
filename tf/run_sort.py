@@ -60,6 +60,7 @@ def digit_image_loader(image_path):
     return image_array
 
 # TODO: Batch sort ops
+# TODO: Compare to n(n/2) stochastic to mergesort ARC training/eval
 def input_generator():
     open_set_dir_path = "/arc/mnist_sort"
     open_set_files = os.listdir(open_set_dir_path)
@@ -318,10 +319,14 @@ if should_load_model_from_volume:
 
     open_set_dir_path = "/arc/mnist_sort"
     open_set_files = os.listdir(open_set_dir_path)
+
+    # n(n/2)
     sort_pairs = []
     for a in range(len(open_set_files)):
         for b in range(a+1, len(open_set_files)):
             sort_pairs.append([a, b])
+
+    comparator_results = np.zeros(len(open_set_files))
     z_f = 0
     while True:
         try:
@@ -338,11 +343,25 @@ if should_load_model_from_volume:
             # TODO: Figure out how to extract string from strided slice or upgrade to tf2 wtf...?
             # print(f'{sort_files[0][comparator]} > {sort_files[0][(comparator+1)%2]}')
             print(f'{open_set_files[sort_pairs[z_f][comparator]]} > {open_set_files[sort_pairs[z_f][(comparator+1)%2]]}')
+            if comparator == 1:
+                comparator_results[sort_pairs[z_f][0]] = comparator_results[sort_pairs[z_f][0]] + 1
+            elif comparator == 0:
+                comparator_results[sort_pairs[z_f][1]] = comparator_results[sort_pairs[z_f][1]] + 1
+            
             end_time = time.time()
             print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
             z_f = z_f + 1
         except tf.errors.OutOfRangeError:
             break
+    
+    print(comparator_results)
+    print(open_set_files)
+    print(np.argsort(comparator_results))
+    sorted_matrices = [None for i in range(len(open_set_files))]
+    for i, s_o in enumerate(np.argsort(comparator_results)):
+        sorted_matrices[s_o] = open_set_files[i]
+    print(sorted_matrices)
+
     # TODO: Iterator results, print values/file path
     # with open(f"/arc/sorted.txt", 'w') as f:
     #     for digit in digits:
