@@ -92,8 +92,8 @@ def get_sort_iterator():
         )
     )
     mm_data.batch(1)
-    mm_data.prefetch(1)
-    return mm_data.make_one_shot_iterator()
+    mm_data = mm_data.prefetch(1)
+    return tf.compat.v1.data.make_one_shot_iterator(mm_data)
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
