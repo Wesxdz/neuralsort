@@ -133,7 +133,7 @@ if should_load_model_from_volume:
 else:
     X_iterator = tf.compat.v1.data.Iterator.from_string_handle(
         handle,
-        (tf.float32, tf.float32, tf.float32, tf.float32, tf.string),
+        (tf.float32, tf.float32, tf.float32, tf.float32),
         ((M, n, l * 28, 28), (M,), (M, n), (M, n))
     )
     X, y, median_scores, true_scores = X_iterator.get_next()
