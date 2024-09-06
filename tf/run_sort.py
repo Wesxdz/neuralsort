@@ -297,7 +297,7 @@ def test(epoch, val=False):
     else:
         prnt("Test set: prop. all correct %f, prop. any correct %f" % (p_c, p_ac))
 
-if load_model_from_volume:
+if should_load_model_from_volume:
     load_model_from_volume_path = volume_model_path
 else:
     # Train the model
