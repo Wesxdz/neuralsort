@@ -93,7 +93,7 @@ def get_sort_iterator():
     )
     mm_data.batch(1)
     mm_data = mm_data.prefetch(1)
-    return mm_data
+    return mm_data.make_one_shot_iterator()
 
 train_iterator, val_iterator, test_iterator = mnist_input.get_iterators(
     l, n, 10 ** l - 1, minibatch_size=M)
@@ -301,19 +301,23 @@ if should_load_model_from_volume:
     start_time = time.time()
     sort_iterator = get_sort_iterator()
     sort_sh = sess.run(sort_iterator.string_handle())
-    p_h = sess.run(P_hat, feed_dict={
-        handle: sort_sh,
-        evaluation: True})
-    sort_permutation = p_h[0]
-    print(sort_permutation)
-    comparator = sort_permutation[0].argmax()
-    print(comparator)
-    end_time = time.time()
+    while True:
+        try:
+            p_h = sess.run(P_hat, feed_dict={
+                handle: sort_sh,
+                evaluation: True})
+            sort_permutation = p_h[0]
+            print(sort_permutation)
+            comparator = sort_permutation[0].argmax()
+            print(comparator)
+            end_time = time.time()
+            print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
+        except tf.errors.OutOfRangeError:
+            break
     # TODO: Iterator results, print values/file path
     # with open(f"/arc/sorted.txt", 'w') as f:
     #     for digit in digits:
     #         f.write(f"{digit[2]}\n")
-    print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
     # TODO: Test Python custom sort comparator
 else:
     load_model_from_checkpoint()
