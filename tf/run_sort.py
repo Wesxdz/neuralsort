@@ -326,7 +326,7 @@ if should_load_model_from_volume:
             comparator = sort_permutation[0].argmax()
             print(comparator)
             print(sort_files)
-            print(f'{sort_files[comparator]} > {sort_files[(comparator+1)%2]}')
+            print(f'{sort_files[0][comparator]} > {sort_files[0][(comparator+1)%2]}')
             end_time = time.time()
             print(f"Search operator execution time: {(end_time - start_time) * 1000:.2f} ms")
         except tf.errors.OutOfRangeError:
