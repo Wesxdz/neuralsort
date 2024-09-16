@@ -16,7 +16,6 @@ class NeuralSortMNIST(nn.Module):
     def forward(self, x):
         # x has shape (M, n, l * 28, 28)
         M, n, _, _ = x.shape
-        print(x.shape)
         x = x.view(-1, 1, 28, 28)  # Reshape to (M * n, 1, 28, 28)
         x = nn.functional.relu(nn.functional.max_pool2d(self.conv1(x), 2))
         x = nn.functional.relu(nn.functional.max_pool2d(self.conv2(x), 2))
@@ -24,7 +23,6 @@ class NeuralSortMNIST(nn.Module):
         x = nn.functional.relu(self.fc1(x))
         scores = self.fc2(x).float()  # Output shape: (M * n, 1), ensure float type
         scores = scores.view(M, n, 1)  # Reshape to (M, n, 1)
-        print(scores.shape)
         P_hat = self.neural_sort(scores)  # Output shape: (M, n, n)
         return P_hat
     
@@ -53,7 +51,6 @@ for epoch in range(3):
         optimizer.zero_grad()
         output = model(data)
         loss = loss_fn(output, P_true)
-        print(loss)
         loss.backward()
         optimizer.step()
         if batch_idx % 100 == 0:
