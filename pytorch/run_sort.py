@@ -5,22 +5,26 @@ from torchvision import datasets, transforms
 from neuralsort import NeuralSort
 
 class NeuralSortMNIST(nn.Module):
-    def __init__(self):
+    def __init__(self, l=1, final_dim=1):
         super(NeuralSortMNIST, self).__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.conv2_drop = nn.Dropout2d()
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+        self.fc1 = nn.Linear(l * 7 * 7 * 64, 64)
+        self.fc2 = nn.Linear(64, final_dim)
         self.neural_sort = NeuralSort(tau=1.0, hard=False)
 
     def forward(self, x):
+        print("Shape at start forward pass")
+        print(x.shape)
+        x = x.view(-1, 1, 28, 28)  # Reshape input
         x = nn.functional.relu(nn.functional.max_pool2d(self.conv1(x), 2))
-        x = nn.functional.relu(nn.functional.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
-        x = x.view(-1, 320)
+        x = nn.functional.relu(nn.functional.max_pool2d(self.conv2(x), 2))
+        x = x.view(-1, 7*7*64)  # Flatten for fully connected layers
         x = nn.functional.relu(self.fc1(x))
         x = self.fc2(x)
-        scores = self.neural_sort(x.unsqueeze(-1))  # Sort the output
+        print("Shape before neural sort")
+        print(x.shape)
+        scores = self.neural_sort(x.unsqueeze(1))  # Sort the output
         return scores
     
 # Set up data loaders
