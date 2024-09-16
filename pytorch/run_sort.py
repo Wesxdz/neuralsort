@@ -48,7 +48,7 @@ for epoch in range(10):
 
         data = data.view(32, 2, 28, 28)
         target = target.reshape(-1, 2)
-        P_true = neural_sort(target)
+        P_true = neural_sort(target.unsqueeze(-1))
 
         optimizer.zero_grad()
         output = model(data)

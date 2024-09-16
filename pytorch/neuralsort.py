@@ -12,7 +12,6 @@ class NeuralSort(torch.nn.Module):
         """
         scores: elements to be sorted. Typical shape: batch_size x n x 1
         """
-        scores = scores.unsqueeze(-1)
         bsize = scores.size()[0]
         dim = scores.size()[1]
         device = scores.device  # Get the device of the input tensor
