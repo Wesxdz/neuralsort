@@ -44,7 +44,7 @@ for epoch in range(3):
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         
-        data = data.view(32, 2, 28, 28)
+        data = data.view(-1, 2, 28, 28)
         target = target.reshape(-1, 2)
         P_true = neural_sort(target.unsqueeze(-1))
 
