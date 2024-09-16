@@ -45,17 +45,14 @@ for epoch in range(3):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
-
+        
         data = data.view(32, 2, 28, 28)
         target = target.reshape(-1, 2)
         P_true = neural_sort(target.unsqueeze(-1))
 
         optimizer.zero_grad()
         output = model(data)
-        print("Loss fn")
-        print(output.shape)
-        print(target.shape)
-        loss = loss_fn(output, target)
+        loss = loss_fn(output, P_true)
         print(loss)
         loss.backward()
         optimizer.step()
