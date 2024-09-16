@@ -16,6 +16,7 @@ class NeuralSort(torch.nn.Module):
         bsize = scores.size()[0]
         dim = scores.size()[1]
         device = scores.device  # Get the device of the input tensor
+        scores = scores.float()
 
         one = torch.ones(dim, 1, device=device, dtype=scores.dtype)
 
