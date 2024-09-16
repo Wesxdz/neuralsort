@@ -22,7 +22,7 @@ class NeuralSortMNIST(nn.Module):
         x = nn.functional.relu(nn.functional.max_pool2d(self.conv2(x), 2))
         x = x.view(-1, 4 * 4 * 64)  # Flatten to (M * n, 4 * 4 * 64)
         x = nn.functional.relu(self.fc1(x))
-        scores = self.fc2(x)  # Output shape: (M * n, 1)
+        scores = self.fc2(x).float()  # Output shape: (M * n, 1), ensure float type
         scores = scores.view(M, n, 1)  # Reshape to (M, n, 1)
         print(scores.shape)
         P_hat = self.neural_sort(scores)  # Output shape: (M, n, n)
