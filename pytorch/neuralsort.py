@@ -16,12 +16,12 @@ class NeuralSort(torch.nn.Module):
         dim = scores.size()[1]
         device = scores.device  # Get the device of the input tensor
 
-        one = torch.ones(dim, 1, device=device)
+        one = torch.ones(dim, 1, device=device, dtype=scores.dtype)
 
         A_scores = torch.abs(scores - scores.permute(0, 2, 1))
         B = torch.matmul(A_scores, torch.matmul(
             one, torch.transpose(one, 0, 1)))
-        scaling = (dim + 1 - 2 * (torch.arange(dim) + 1)).to(device)
+        scaling = (dim + 1 - 2 * (torch.arange(dim) + 1)).to(device, dtype=scores.dtype)
         C = torch.matmul(scores, scaling.unsqueeze(0))
 
         P_max = (C-B).permute(0, 2, 1)
