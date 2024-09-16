@@ -9,7 +9,6 @@ TRAIN_SET_SIZE = 55000
 VAL_SET_SIZE = 5000
 TEST_SET_SIZE = 10000
 
-
 def select_digit(split, d):
     return np.array([x for x in split.as_numpy_iterator() if x[1] == d])
 
