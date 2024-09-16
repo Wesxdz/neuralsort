@@ -34,7 +34,8 @@ train_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True
 test_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True, train=False, transform=transform), batch_size=64, shuffle=False)
 
 # Initialize model, optimizer, and loss function
-model = NeuralSortMNIST()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = NeuralSortMNIST().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
@@ -42,6 +43,7 @@ loss_fn = nn.CrossEntropyLoss()
 for epoch in range(10):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
         loss = loss_fn(output, target)
@@ -55,6 +57,7 @@ for epoch in range(10):
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += loss_fn(output, target).item()
             pred = torch.argmax(output, dim=1)
