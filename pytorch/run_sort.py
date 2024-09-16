@@ -20,7 +20,7 @@ class NeuralSortMNIST(nn.Module):
         x = x.view(-1, 320)
         x = nn.functional.relu(self.fc1(x))
         x = self.fc2(x)
-        scores = self.neural_sort(x.unsqueeze(1))  # Sort the output
+        scores = self.neural_sort(x.unsqueeze(-1))  # Sort the output
         return scores
     
 # Set up data loaders
