@@ -41,7 +41,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
 # Train the model
-for epoch in range(10):
+for epoch in range(3):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -52,7 +52,11 @@ for epoch in range(10):
 
         optimizer.zero_grad()
         output = model(data)
+        print("Loss fn")
+        print(output.shape)
+        print(target.shape)
         loss = loss_fn(output, target)
+        print(loss)
         loss.backward()
         optimizer.step()
         if batch_idx % 100 == 0:
