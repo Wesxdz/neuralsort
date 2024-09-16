@@ -36,7 +36,7 @@ test_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True,
 # Initialize model, optimizer, and loss function
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = NeuralSortMNIST().to(device)
-neural_sort = NeuralSort()
+neural_sort = NeuralSort().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 

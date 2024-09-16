@@ -14,5 +14,6 @@ for batch_idx, (data, target) in enumerate(train_loader):
     data, target = data.to(device), target.to(device)
     data = data.view(32, 2, 28, 28)
     target = target.reshape(-1, 2)
-    P_true = model(target)
+    P_true = model(target.unsqueeze(-1))
+    print(P_true)
     break
