@@ -8,14 +8,19 @@ from neuralsort import NeuralSort
 class TransformerNeuralSort(nn.Module):
     def __init__(self, l=1, final_dim=1):
         super(TransformerNeuralSort, self).__init__()
-        self.transformer = nn.TransformerEncoderLayer(d_model=784, nhead=8, dim_feedforward=784, dropout=0.1)
-        self.fc2 = nn.Linear(784, final_dim)
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+        self.transformer = nn.TransformerEncoderLayer(d_model=64*4*4, nhead=8, dim_feedforward=64*4*4, dropout=0.1)
+        self.fc2 = nn.Linear(64*4*4, final_dim)
         self.neural_sort = NeuralSort(tau=1.0, hard=False)
 
     def forward(self, x):
         # x has shape (M, n, l * 28, 28)
         M, n, _, _ = x.shape
-        x = x.view(M, n, -1)  # Reshape to (M, n, 784)
+        x = x.view(-1, 1, 28, 28)  # Reshape to (M * n, 1, 28, 28)
+        x = nn.functional.relu(nn.functional.max_pool2d(self.conv1(x), 2))
+        x = nn.functional.relu(nn.functional.max_pool2d(self.conv2(x), 2))
+        x = x.view(M, n, -1)  # Reshape to (M, n, 64*4*4)
         x = self.transformer(x.transpose(0, 1)).transpose(0, 1)  # Transformer encoder layer
         scores = self.fc2(x).float()  # Output shape: (M, n, 1), ensure float type
         scores = scores.view(M, n, 1)  # Reshape to (M, n, 1)
