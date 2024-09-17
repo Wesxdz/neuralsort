@@ -61,6 +61,7 @@ for epoch in range(100):
     model.eval()
     test_loss = 0
     correct = 0
+    total = 0
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
@@ -73,7 +74,11 @@ for epoch in range(100):
             logits = torch.log(output + 1e-20)
             test_loss += loss_fn(logits, P_true).item()
             pred = torch.argmax(logits, dim=1)
-            correct += pred.eq(target).sum().item()
+            pred_min_index = torch.argmin(pred, dim=1)
+            target_min_index = torch.argmax(target, dim=1)
 
-    accuracy = correct / len(test_loader.dataset)
+            correct += pred_min_index.eq(target_min_index).sum().item()
+            total += pred_min_index.size(0)  # Get the batch size
+
+    accuracy = correct / total
     print(f'Epoch {epoch+1}, Test Loss: {test_loss / len(test_loader)}', f'Test Accuracy: {accuracy:.2f}%')
