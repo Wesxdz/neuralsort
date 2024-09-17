@@ -36,7 +36,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = NeuralSortMNIST().to(device)
 neural_sort = NeuralSort().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.CrossEntropyLoss(dim=2)
 
 # Train the model
 for epoch in range(100):
@@ -49,8 +49,12 @@ for epoch in range(100):
         P_true = neural_sort(target.unsqueeze(-1))
 
         optimizer.zero_grad()
+
         output = model(data)
-        loss = loss_fn(output, P_true)
+        logits = torch.log(output + 1e-20)
+        loss = loss_fn(logits, P_true)
+        losses = torch.mean(losses, dim=1)
+        loss = torch.mean(losses)
         loss.backward()
         optimizer.step()
         if batch_idx % 100 == 0:
@@ -68,8 +72,9 @@ for epoch in range(100):
             P_true = neural_sort(target.unsqueeze(-1))
 
             output = model(data)
-            test_loss += loss_fn(output, P_true).item()
-            pred = torch.argmax(output, dim=1)
+            logits = torch.log(output + 1e-20)
+            test_loss += loss_fn(logits, P_true).item()
+            pred = torch.argmax(logits, dim=1)
             correct += pred.eq(target).sum().item()
 
     accuracy = correct / len(test_loader.dataset)
