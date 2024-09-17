@@ -62,8 +62,13 @@ for epoch in range(3):
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
+
+            data = data.view(-1, 2, 28, 28)
+            target = target.reshape(-1, 2)
+            P_true = neural_sort(target.unsqueeze(-1))
+
             output = model(data)
-            test_loss += loss_fn(output, target).item()
+            test_loss += loss_fn(output, P_true).item()
             pred = torch.argmax(output, dim=1)
             correct += pred.eq(target).sum().item()
 
