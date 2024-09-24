@@ -25,62 +25,63 @@ class NeuralSortMNIST(nn.Module):
         scores = scores.view(M, n, 1)  # Reshape to (M, n, 1)
         P_hat = self.neural_sort(scores)  # Output shape: (M, n, n)
         return P_hat
-    
-# Set up data loaders
-transform = transforms.Compose([transforms.ToTensor()])
-train_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True, train=True, transform=transform), batch_size=64, shuffle=True)
-test_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True, train=False, transform=transform), batch_size=64, shuffle=False)
 
-# Initialize model, optimizer, and loss function
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model = NeuralSortMNIST().to(device)
-neural_sort = NeuralSort().to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-loss_fn = nn.CrossEntropyLoss()
+if __name__ == "__main__":
+    # Set up data loaders
+    transform = transforms.Compose([transforms.ToTensor()])
+    train_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True, train=True, transform=transform), batch_size=64, shuffle=True)
+    test_loader = DataLoader(datasets.MNIST('~/.pytorch/MNIST_data/', download=True, train=False, transform=transform), batch_size=64, shuffle=False)
 
-# Train the model
-for epoch in range(5):
-    model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
-        
-        data = data.view(-1, 2, 28, 28)
-        target = target.reshape(-1, 2)
-        P_true = neural_sort(target.unsqueeze(-1))
+    # Initialize model, optimizer, and loss function
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = NeuralSortMNIST().to(device)
+    neural_sort = NeuralSort().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    loss_fn = nn.CrossEntropyLoss()
 
-        optimizer.zero_grad()
-
-        output = model(data)
-        logits = torch.log(output + 1e-20)
-        loss = loss_fn(logits, P_true)
-        loss.backward()
-        optimizer.step()
-        if batch_idx % 100 == 0:
-            print(f'Epoch {epoch+1}, Batch {batch_idx+1}, Loss: {loss.item()}')
-
-    model.eval()
-    test_loss = 0
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data, target in test_loader:
+    # Train the model
+    for epoch in range(5):
+        model.train()
+        for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(device), target.to(device)
-
+            
             data = data.view(-1, 2, 28, 28)
             target = target.reshape(-1, 2)
             P_true = neural_sort(target.unsqueeze(-1))
 
+            optimizer.zero_grad()
+
             output = model(data)
             logits = torch.log(output + 1e-20)
-            test_loss += loss_fn(logits, P_true).item()
-            pred = torch.argmax(logits, dim=1)
-            pred_min_index = torch.argmin(pred, dim=1)
-            target_min_index = torch.argmax(target, dim=1)
+            loss = loss_fn(logits, P_true)
+            loss.backward()
+            optimizer.step()
+            if batch_idx % 100 == 0:
+                print(f'Epoch {epoch+1}, Batch {batch_idx+1}, Loss: {loss.item()}')
 
-            correct += pred_min_index.eq(target_min_index).sum().item()
-            total += pred_min_index.size(0)  # Get the batch size
+        model.eval()
+        test_loss = 0
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data, target in test_loader:
+                data, target = data.to(device), target.to(device)
 
-    accuracy = correct / total
-    print(f'Epoch {epoch+1}, Test Loss: {test_loss / len(test_loader)}', f'Test Accuracy: {accuracy:.2f}%')
+                data = data.view(-1, 2, 28, 28)
+                target = target.reshape(-1, 2)
+                P_true = neural_sort(target.unsqueeze(-1))
 
-torch.save(model.state_dict(), "/arc/pytorch_mnist.pth")
+                output = model(data)
+                logits = torch.log(output + 1e-20)
+                test_loss += loss_fn(logits, P_true).item()
+                pred = torch.argmax(logits, dim=1)
+                pred_min_index = torch.argmin(pred, dim=1)
+                target_min_index = torch.argmax(target, dim=1)
+
+                correct += pred_min_index.eq(target_min_index).sum().item()
+                total += pred_min_index.size(0)  # Get the batch size
+
+        accuracy = correct / total
+        print(f'Epoch {epoch+1}, Test Loss: {test_loss / len(test_loader)}', f'Test Accuracy: {accuracy:.2f}%')
+
+    torch.save(model.state_dict(), "/arc/pytorch_mnist.pth")

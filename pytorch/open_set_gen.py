@@ -9,7 +9,6 @@ from gpdl import ScanlinesDataset
 import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
-import os
 from torchvision import transforms
 import torch.nn as nn
 import torch.nn.functional as F
