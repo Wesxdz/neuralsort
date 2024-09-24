@@ -84,3 +84,5 @@ if __name__ == "__main__":
 
         accuracy = correct / total
         print(f'Epoch {epoch+1}, Test Loss: {test_loss / len(test_loader)}', f'Test Accuracy: {accuracy:.2f}%')
+
+torch.save(model.state_dict(), "/arc/pytorch_mnist_vit.pth")
