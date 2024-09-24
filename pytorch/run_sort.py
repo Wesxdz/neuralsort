@@ -39,7 +39,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()
 
 # Train the model
-for epoch in range(100):
+for epoch in range(5):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
@@ -82,3 +82,5 @@ for epoch in range(100):
 
     accuracy = correct / total
     print(f'Epoch {epoch+1}, Test Loss: {test_loss / len(test_loader)}', f'Test Accuracy: {accuracy:.2f}%')
+
+torch.save(model.state_dict(), "/arc/pytorch_mnist.pth")
