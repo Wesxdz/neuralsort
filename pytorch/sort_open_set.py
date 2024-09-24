@@ -35,7 +35,9 @@ def load_sort_pair(open_set, pair):
     b = np.load(open_set[pair[1]])
     c = np.stack([a, b])
     c = np.expand_dims(c, 0)
-    return torch.from_numpy(c)
+    t = torch.from_numpy(c)
+    t = t.to(dtype=torch.float)
+    return t
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = NeuralSortMNIST().to(device)
