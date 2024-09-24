@@ -59,6 +59,7 @@ z_f = 0
 for pair in sort_pairs:
     start_time = time.time()
     input = load_sort_pair(open_set_files, pair)
+    input = input.to(device)
     p_h = model(input)
     sort_permutation = p_h[0]
     print(sort_permutation)
