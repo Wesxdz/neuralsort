@@ -39,7 +39,8 @@ def load_sort_pair(open_set, pair):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = NeuralSortMNIST().to(device)
 neural_sort = NeuralSort().to(device)
-model.load_state_dict("/arc/pytorch_mnist.pth")
+model.load_state_dict(torch.load("/arc/pytorch_mnist.pth", weights_only=True))
+model.eval()
 
 open_set_dir_path = "/arc/mnist_sort"
 open_set_files = glob.glob(os.path.join(open_set_dir_path, '*.npy'))
