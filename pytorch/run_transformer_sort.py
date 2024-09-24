@@ -41,7 +41,7 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
 
     # Train the model
-    for epoch in range(100):
+    for epoch in range(5):
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = data.to(device), target.to(device)
