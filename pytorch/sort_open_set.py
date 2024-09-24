@@ -32,10 +32,10 @@ class NeuralSortMNIST(nn.Module):
     
 def load_sort_pair(open_set, pair):
     a = np.load(open_set[pair[0]])
-    b = np.load(open_set[pair[0]])
+    b = np.load(open_set[pair[1]])
     c = np.stack([a, b])
     c = np.expand_dims(c, 0)
-    return c
+    return torch.from_numpy(c)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = NeuralSortMNIST().to(device)
