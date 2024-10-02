@@ -16,11 +16,13 @@ class ScanlinesDataset(Dataset):
         output_path = os.path.join(self.root_dir, f'output_{idx}.npy')
         op_path = os.path.join(self.root_dir, f'op_{idx}.npy')
         program_path = os.path.join(self.root_dir, f'program_{idx}.npy')
+        program_vars_path = os.path.join(self.root_dir, f'program_vars_{idx}.npy')
 
         input_matrix = np.load(input_path)
         output_matrix = np.load(output_path)
         op_matrix = np.load(op_path)
         program_matrix = np.load(program_path)
+        program_vars = np.load(program_vars_path)
 
         # Convert to tensors
         input_tensor = torch.from_numpy(input_matrix).float()
@@ -28,12 +30,7 @@ class ScanlinesDataset(Dataset):
         op_tensor = torch.from_numpy(op_matrix).float()
         program_tensor = torch.from_numpy(program_matrix).float()
 
-        return {
-            'input': input_tensor,
-            'output': output_tensor,
-            'op': op_tensor,
-            'program': program_tensor
-        }
+        return (input_tensor, output_tensor, op_tensor, program_tensor, program_vars)
 
 
 # Train/test split
