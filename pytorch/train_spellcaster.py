@@ -92,13 +92,12 @@ def train_neural_graphics_pathfinder():
     for epoch in range(1):
             program_state_model.train()
             for batch_idx, (graphics_program, sort_stages, program_deltas) in enumerate(train_loader):
-                # print(program_deltas)
                 data = program_deltas
                 data = data.view(-1, 2, 28*4, 28)
-                # print(type(sort_stages))
-                # print(sort_stages)
                 priorities = sort_stages.reshape(-1, 2)
-                # print(priorities)
+                data = data.to(device)
+                priorities = priorities.to(device)
+
                 P_true = neural_sort(priorities.unsqueeze(-1))
 
                 optimizer.zero_grad()
@@ -109,7 +108,6 @@ def train_neural_graphics_pathfinder():
                 loss.backward()
 
                 optimizer.step()
-                # print(P_true)
                 print(loss)
 
     torch.save(program_state_model.state_dict(), '/spells/program_state_model.pth')
