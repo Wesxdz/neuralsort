@@ -318,5 +318,5 @@ width = 0
 height = 0
 
 program_open_set_vars = [x, y, width, height]
-# sort_learning_from_human_spellcasting(program_open_set_vars)
-train_neural_graphics_pathfinder()
+sort_learning_from_human_spellcasting(program_open_set_vars)
+# train_neural_graphics_pathfinder()
