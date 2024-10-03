@@ -16,45 +16,43 @@ class HumanSpellcastingDataset(Dataset):
 
             sort_stages = sorted(os.listdir(graphics_program_dir_path), key=lambda x: int(x))
 
-            # Initialize the previous sort stage's program state
-            prev_program_state = None
+            # Initialize a list to store program states for all sort stages
+            program_states = []
 
-            # Iterate through the sort stages in reverse order
+            # Iterate through the sort stages
             for sort_stage in sort_stages:
                 sort_stage_dir_path = os.path.join(graphics_program_dir_path, sort_stage)
 
-                # Load program state and neighbor indices
+                # Load program state
                 with open(os.path.join(sort_stage_dir_path, "program_state.txt"), "r") as f:
                     program_state = [(int(data.split(" ")[0]), int(data.split(" ")[1])) for data in f.readlines()]
+                program_states.append(program_state)
 
-                # If this is not the first sort stage, generate pairwise comparisons with the previous sort stage
-                if prev_program_state is not None:
-                    for a in range(len(program_state)):
-                        for b in range(len(prev_program_state)):
+            # Generate all pairs of sort stages
+            for i in range(len(sort_stages)):
+                for j in range(i + 1, len(sort_stages)):
+                    for a in range(len(program_states[i])):
+                        for b in range(len(program_states[j])):
                             # Load numpy files for the pair
-                            npy_file_a = os.path.join(sort_stage_dir_path, f"n_{a}.npy")
-                            npy_file_b = os.path.join(graphics_program_dir_path, str(int(sort_stage) - 1), f"n_{b}.npy")
+                            npy_file_a = os.path.join(graphics_program_dir_path, sort_stages[i], f"n_{a}.npy")
+                            npy_file_b = os.path.join(graphics_program_dir_path, sort_stages[j], f"n_{b}.npy")
 
                             if os.path.exists(npy_file_a) and os.path.exists(npy_file_b):
                                 # Deterministic randomization of the order
-                                hash_value = int(hashlib.md5(f"{graphics_program}{sort_stage}{a}{b}".encode()).hexdigest(), 16)
+                                hash_value = int(hashlib.md5(f"{graphics_program}{sort_stages[i]}{sort_stages[j]}{a}{b}".encode()).hexdigest(), 16)
                                 if hash_value % 2 == 0:
                                     self.samples.append({
                                         "graphics_program": graphics_program,
-                                        "sort_stages": np.array([int(sort_stage), int(sort_stage) - 1]),
+                                        "sort_stages": np.array([int(sort_stages[i]), int(sort_stages[j])]),
                                         "program_deltas": [npy_file_a, npy_file_b]
                                     })
                                 else:
                                     self.samples.append({
                                         "graphics_program": graphics_program,
-                                        "sort_stages": np.array([int(sort_stage) - 1, int(sort_stage)]),
+                                        "sort_stages": np.array([int(sort_stages[j]), int(sort_stages[i])]),
                                         "program_deltas": [npy_file_b, npy_file_a]
                                     })
                                 self.num_samples += 1
-
-
-                # Update the previous sort stage's program state
-                prev_program_state = program_state
 
     def __len__(self):
         return self.num_samples

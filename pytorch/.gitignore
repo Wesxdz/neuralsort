@@ -4,3 +4,5 @@ hf
 sort_stage
 neighbors
 spells
+*.pth
+spell_debug
