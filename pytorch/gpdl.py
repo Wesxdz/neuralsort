@@ -31,8 +31,9 @@ class HumanSpellcastingDataset(Dataset):
             # Generate all pairs of sort stages
             for i in range(len(sort_stages)):
                 for j in range(i + 1, len(sort_stages)):
-                    for a in range(len(program_states[i])):
-                        for b in range(len(program_states[j])):
+                    # Let's try with just the top sorted variable...
+                    for a in range(1):# len(program_states[i])
+                        for b in range(1): # len(program_states[j]
                             # Load numpy files for the pair
                             npy_file_a = os.path.join(graphics_program_dir_path, sort_stages[i], f"n_{a}.npy")
                             npy_file_b = os.path.join(graphics_program_dir_path, sort_stages[j], f"n_{b}.npy")

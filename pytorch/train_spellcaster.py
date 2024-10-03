@@ -89,7 +89,7 @@ def train_neural_graphics_pathfinder():
     optimizer = torch.optim.Adam(program_state_model.parameters(), lr=0.001)
     loss_fn = nn.CrossEntropyLoss()
 
-    for epoch in range(10):
+    for epoch in range(5):
             program_state_model.train()
             for batch_idx, (graphics_program, sort_stages, program_deltas) in enumerate(train_loader):
                 data = program_deltas
