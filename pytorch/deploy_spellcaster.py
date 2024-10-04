@@ -162,7 +162,7 @@ def deploy_neural_graphics_pathfinder(program_open_set):
                     # print(sort_results)
                     
                     # for s_i, sort in enumerate(sort_results):
-                        # render_program(f"spell_debug/sort_{s_i}.png", sort_results[s_i][1], program_vars)
+                    #     render_program(f"spell_debug/sort_{path_node}_{s_i}.png", sort_results[s_i][1], program_vars)
                     render_program(f"spell_debug/sort_{path_node}.png", sort_results[0][1], program_vars)
 
                     program_open_set = sort_results[0][1]

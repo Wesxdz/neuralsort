@@ -88,7 +88,8 @@ if __name__ == "__main__":
 
     # Generate the synthetic dataset
     for i in range(num_samples):
-        input_matrix = np.random.rand(input_size, input_size)
+        # input_matrix = np.random.rand(input_size, input_size)
+        input_matrix = np.zeros((input_size, input_size))
 
         x = np.random.randint(0, input_size-15)
         y = np.random.randint(0, input_size-15)

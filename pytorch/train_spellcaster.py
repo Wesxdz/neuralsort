@@ -111,5 +111,13 @@ def train_neural_graphics_pathfinder():
                 print(loss)
 
     torch.save(program_state_model.state_dict(), '/spells/program_state_model.pth')
+    # Save for AOT inductor
+    example_inputs=(torch.randn(1, 2, 28*4, 28, device=device),)
+    batch_dim = torch.export.Dim("batch", min=1, max=1024)
+    so_path = torch._export.aot_compile(
+        program_state_model,
+        example_inputs,
+        options={"aot_inductor.output_path": os.path.join("/spells/", "program_state_model.so")},
+    )
 
 train_neural_graphics_pathfinder()

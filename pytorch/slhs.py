@@ -196,6 +196,7 @@ def sort_learning_from_human_spellcasting(program_open_set_vars):
 
                 # TODO: Make this more efficient, you only need to save io pair once...
                 np.save(f'neighbors/{sort_stage}/n_{n_i}.npy', program_train_matrix)
+                np.save(f'neighbors/{sort_stage}/vars_{n_i}.npy', np.array(neighbor))
 
                 render_program(f'sort_stage/{sort_stage}/program_{n_i}.png', neighbor, program_vars)
                 # TODO: Save neighbor vars
